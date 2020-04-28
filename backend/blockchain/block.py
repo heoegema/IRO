@@ -37,6 +37,9 @@ class Block:
             f'nonce: {self.nonce})'
         )
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
     @staticmethod
     def mine_block(last_block, data):
         """
@@ -79,11 +82,53 @@ class Block:
             return last_block.difficulty - 1
         return 1
 
+    @staticmethod
+    def is_valid_block(last_block, block):
+        """
+        Validate block by enforcing the following rules:
+            - The block's last_hash must be equal to last_block's hash
+            - The block must meet the proof of work requirement
+            - The difficulty must only adjust by 1 (decrease or increase)
+            - The block hash must be a valid combination of the block's fields
+        """
+
+        # Rule 1: The block's last hash must be equal to last_block's hash
+        if block.last_hash != last_block.hash:
+            raise Exception('The block last_hash must be correct')
+
+        # Rule 2: The block must meet the proof of work requirement
+        if hex_to_binary(block.hash)[0:block.difficulty] != '0'*block.difficulty:
+            raise Exception('The proof of work requirement was not met')
+
+        # Rule 3: The difficulty must only adjust by 1
+        if abs(last_block.difficulty - block.difficulty) > 1:
+            raise Exception('The difficulty must only adjust by 1')
+
+        # Rule 4: The block hash must be a valid combination of the block's fields
+
+        reconstructed_hash = crypto_hash(
+            block.timestamp,
+            block.last_hash,
+            block.data,
+            block.nonce,
+            block.difficulty
+        )
+
+        if block.hash != reconstructed_hash:
+            raise Exception('The block hash must be correct')
+
 def main():
     genesis_block = Block.genesis()
-    block = Block.mine_block(genesis_block, 'foo')
-    print(genesis_block)
-    print(block)
+    bad_block = Block.mine_block(genesis_block, 'foo')
+    #bad_block.last_hash = 'evil_data'
+    print(bad_block)
+
+    try:
+        Block.is_valid_block(genesis_block, bad_block)
+    except Exception as e:
+        print(f'is_valid_block: {e}')
+
+
 
 if __name__ == '__main__':
     main()

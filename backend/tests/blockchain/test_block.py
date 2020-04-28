@@ -1,5 +1,6 @@
 from backend.blockchain.block import Block, GENESIS_DATA
 from backend.utils.hex_to_binary import hex_to_binary
+import pytest
 import time
 from backend.config import MINE_RATE, SECONDS
 
@@ -44,3 +45,40 @@ def test_mined_block_difficulty_limits_at_1():
     time.sleep(MINE_RATE/SECONDS)
     mined_block = Block.mine_block(last_block, 'bar')
     assert mined_block.difficulty == 1
+
+@pytest.fixture
+def last_block():
+    return Block.genesis()
+
+@pytest.fixture
+def block(last_block):
+    return Block.mine_block(last_block, 'test_data')
+
+def test_is_valid_block(last_block, block):
+    Block.is_valid_block(last_block, block)
+
+def test_is_valid_block_bad_last_hash(last_block, block):
+    block.last_hash = 'evil_last_hash'
+
+    with pytest.raises(Exception, match='The block last_hash must be correct'):
+        Block.is_valid_block(last_block, block)
+
+def test_is_valid_block_bad_proof_of_work(last_block, block):
+    block.hash = 'fff'
+
+    with pytest.raises(Exception, match='The proof of work requirement was not met'):
+        Block.is_valid_block(last_block, block)
+
+def test_is_valid_block_jumped_difficulty(last_block, block):
+    jumped_difficulty = 10
+    block.difficulty = jumped_difficulty
+    block.hash = f'{"0"*jumped_difficulty}11aabb'
+
+    with pytest.raises(Exception, match='The difficulty must only adjust by 1'):
+        Block.is_valid_block(last_block, block)
+
+def test_is_valid_block_bad_hash(last_block, block):
+    block.hash = '00000000000000000000000bbbab'
+
+    with pytest.raises(Exception, match='The block hash must be correct'):
+        Block.is_valid_block(last_block, block)

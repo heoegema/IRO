@@ -116,7 +116,6 @@ class Block:
             raise Exception('The difficulty must only adjust by 1')
 
         # Rule 4: The block hash must be a valid combination of the block's fields
-        print(f'\nForming reconstructed hash from: {block.timestamp} {block.last_hash}, {block.data}, {block.difficulty}, {block.nonce}')
         reconstructed_hash = crypto_hash(
             block.timestamp,
             block.last_hash,

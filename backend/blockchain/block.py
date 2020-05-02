@@ -64,7 +64,6 @@ class Block:
             timestamp = time.time_ns()
             difficulty = Block.adjust_difficulty(last_block, timestamp)
             hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
-
         return Block(timestamp, last_hash, hash, data, difficulty, nonce)
 
     @staticmethod
@@ -104,7 +103,6 @@ class Block:
             - The difficulty must only adjust by 1 (decrease or increase)
             - The block hash must be a valid combination of the block's fields
         """
-
         # Rule 1: The block's last hash must be equal to last_block's hash
         if block.last_hash != last_block.hash:
             raise Exception('The block last_hash must be correct')
@@ -118,13 +116,13 @@ class Block:
             raise Exception('The difficulty must only adjust by 1')
 
         # Rule 4: The block hash must be a valid combination of the block's fields
-
+        print(f'\nForming reconstructed hash from: {block.timestamp} {block.last_hash}, {block.data}, {block.difficulty}, {block.nonce}')
         reconstructed_hash = crypto_hash(
             block.timestamp,
             block.last_hash,
             block.data,
-            block.nonce,
-            block.difficulty
+            block.difficulty,
+            block.nonce
         )
 
         if block.hash != reconstructed_hash:

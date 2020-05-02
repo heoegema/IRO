@@ -18,11 +18,11 @@ class Wallet:
     Allows a miner to authorize transactions.
     """
 
-    def __init__(self):
+    def __init__(self, blockchain=None):
+        self.blockchain = blockchain
         # Generating a unique address
         # Limiting to 8 characters
         self.address = str(uuid.uuid4())[0:8]
-        self.balance = STARTING_BALANCE
         # Fun Fact: Same cryptography algo bitcoin uses
         self.private_key = ec.generate_private_key(
             ec.SECP256K1(),
@@ -31,12 +31,16 @@ class Wallet:
         self.public_key = self.private_key.public_key()
         self.serialize_public_key()
 
+    @property
+    def balance(self):
+        return Wallet.calculate_balance(self.blockchain, self.address)
+
     def sign(self, data):
         """
         Generate a signature based on the data using the local private key.
         """
         return decode_dss_signature(self.private_key.sign(
-            json.dumps(data).encode('utf-8'),
+            json.dumps(data, sort_keys=True).encode('utf-8'),
             ec.ECDSA(hashes.SHA256())
         ))
 
@@ -65,12 +69,39 @@ class Wallet:
         try:
             deserialized_public_key.verify(
                 encode_dss_signature(r, s),
-                json.dumps(data).encode('utf-8'),
+                json.dumps(data, sort_keys=True).encode('utf-8'),
                 ec.ECDSA(hashes.SHA256())
             )
             return True
         except InvalidSignature:
             return False
+
+    @staticmethod
+    def calculate_balance(blockchain, address):
+        """
+        Calculate the balance of the given address given the transaction
+        data within the blockchain.
+
+        The balance is found by adding the output values that belong to the address
+        since the most recent transaction by that address.
+        """
+
+        balance = STARTING_BALANCE
+
+        if not blockchain:
+            return balance
+
+        for block in blockchain.chain:
+            for transaction in block.data:
+                # If we sent money
+                if transaction['input']['address'] == address:
+                    # Any time the address conducts a transaction, reset
+                    # its balance
+                    balance = transaction['output'][address]
+                # If we received money
+                elif address in transaction['output']:
+                    balance += transaction['output'][address]
+        return balance
 
 def main():
     wallet = Wallet()

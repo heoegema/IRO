@@ -1,8 +1,8 @@
-### Project for "Python, JS, & React| Build a Blockchain and Crytpocurrency"
+### Mr. Squiggles' Blockchain
 
-<center>
 ![image info](./frontend/src/assets/Squiggle.png)
-</center>
+
+This is the course project completed as a part of the  ["Python, JS & React | Build a Blockchain and Cryptocurrency"](https://www.udemy.com/course/python-js-react-blockchain) course on udemy. 
 
 **To Activate the Virtual Environment**
 ```

@@ -1,6 +1,8 @@
 ### Project for "Python, JS, & React| Build a Blockchain and Crytpocurrency"
 
+<center>
 ![image info](./frontend/src/assets/Squiggle.png)
+</center>
 
 **To Activate the Virtual Environment**
 ```
